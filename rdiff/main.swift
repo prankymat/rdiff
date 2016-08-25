@@ -13,7 +13,7 @@ args.removeFirst()
 
 if args.count > 0 && args[0] == "-v" {
     // Print version then exit
-    print("rdiff - Raccoon Diff (v. 0.1)\nAuthor: Matthew Wo (9029537@gmail.com) © 2016")
+    print("rdiff - Raccoon Diff (v. 0.2)\nAuthor: Matthew Wo (9029537@gmail.com) © 2016")
     exit(EXIT_SUCCESS)
 }
 
@@ -40,8 +40,15 @@ guard let srcFolder = try? FolderCrawler.crawl(folder: src),
 let difference = Set(srcFolder).subtracting(dstFolder)
 
 if difference.count > 0 {
+    let sortedDifference = difference.sorted(by: { (a, b) -> Bool in
+        a.uri.deletingLastPathComponent().absoluteString < b.uri.deletingLastPathComponent().absoluteString
+    })
+
+    let result = sortedDifference.flatMap { $0.uri.deletingBase(path: "\(src.path)/")?.absoluteString }
+                                 .flatMap { $0.removingPercentEncoding }
+
     print("Please copy these files from \(src.path) to \(dst.path):")
-    for path in difference.map({ $0.uri.lastPathComponent }).sorted() {
+    for path in result {
         print(path)
     }
 } else {

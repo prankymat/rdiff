@@ -9,18 +9,10 @@
 import Foundation
 
 extension FileManager {
-
     func modificationDateForFileAtPath(path:String) -> Date? {
         guard let attributes = try? self.attributesOfItem(atPath: path) else { return nil }
         return attributes[FileAttributeKey.modificationDate] as? Date
     }
-
-    func creationDateForFileAtPath(path:String) -> Date? {
-        guard let attributes = try? self.attributesOfItem(atPath: path) else { return nil }
-        return attributes[FileAttributeKey.creationDate] as? Date
-    }
-    
-
 }
 
 struct FolderCrawler {
@@ -47,7 +39,7 @@ struct FolderCrawler {
             let md5 = line.substring(to: line.index(line.startIndex, offsetBy: 32))
             let uriStr = line.substring(from: line.index(line.startIndex, offsetBy: 33))
 
-            guard let uri = URL(string: uriStr.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!) else {
+            guard let uri = URL(string: uriStr.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!) else {
                 fatalError()
             }
 
@@ -57,43 +49,78 @@ struct FolderCrawler {
     }
 
     private static func loadCache(at folder: URL) -> String? {
-        let cachePath = "\(folder)/.md5.cache"
+        let cachePath = folder.appendingPathComponent(".md5.cache")
 
         guard let folderMod = FileManager.default.modificationDateForFileAtPath(path: folder.absoluteString),
-            let cacheMod = FileManager.default.modificationDateForFileAtPath(path: cachePath) else {
+            let cacheMod = FileManager.default.modificationDateForFileAtPath(path: cachePath.path) else {
                 return nil
         }
         
         if case .orderedDescending = cacheMod.addingTimeInterval(TimeInterval(10)).compare(folderMod) {
-            return FileManager.default.contents(atPath: cachePath).flatMap { String(data: $0, encoding: .utf8) }
+            return FileManager.default.contents(atPath: cachePath.path).flatMap { String(data: $0, encoding: .utf8) }
         }
 
         return nil
     }
 
-    static func crawl(folder: URL) throws -> [File] {
-        let fileList = try FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).map { $0.path }
+    private static func saveCache(for files: [File]) throws {
+        var buffer = [URL : [String]]()
 
-        guard fileList.count > 0 else {
+        for file in files {
+            let folder = file.uri.deletingLastPathComponent()
+
+            if buffer[folder] == nil {
+                buffer[folder] = [String]()
+            }
+
+            buffer[folder]!.append("\(file.md5) \(file.uri.path)")
+        }
+
+        for (folder, strBuf) in buffer {
+            let joined = strBuf.joined(separator: "\n")
+            let cacheFile = folder.appendingPathComponent(".md5.cache")
+            try joined.write(toFile: cacheFile.path, atomically: true, encoding: .utf8)
+        }
+    }
+
+    static func crawl(folder: URL) throws -> [File] {
+        guard let folderList = try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles), folderList.count > 0 else {
             return []
         }
 
+        var fileList = [File]()
+
+        var regularFiles = [URL]()
+
+        for file in folderList {
+            let fileType = try! file.resourceValues(forKeys: [.isDirectoryKey])
+            if let _ = fileType.isDirectory {
+                let filesInSubDir = try crawl(folder: file)
+                fileList.append(contentsOf: filesInSubDir)
+            }
+            regularFiles.append(file)
+        }
+
         let result: String
+
         if let cache = loadCache(at: folder) {
             result = cache
         } else {
-            result = shell(launchPath: "/sbin/md5", arguments: ["-r"] + fileList)
-            try? result.write(toFile: "\(folder)/.md5.cache", atomically: true, encoding: .utf8)
+            result = shell(launchPath: "/sbin/md5", arguments: ["-r"] + regularFiles.map { $0.path })
         }
 
         let parsed = parseMD5s(output: result)
 
-        var files = [File]()
-
         for (uri, md5) in parsed {
-            files.append(File(uri: uri, md5: md5))
+            fileList.append(File(uri: uri, md5: md5))
         }
 
-        return files.filter { $0.uri.lastPathComponent != ".md5.cache" }
+        do {
+            try saveCache(for: fileList)
+        } catch {
+            print("ERROR: Failed to save cache!")
+        }
+
+        return fileList
     }
 }

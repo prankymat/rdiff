@@ -10,6 +10,7 @@
 		39A73A691D6D466D00A48A83 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A73A681D6D466D00A48A83 /* main.swift */; };
 		39A73A701D6D467E00A48A83 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A73A6F1D6D467E00A48A83 /* File.swift */; };
 		39A73A721D6D46F600A48A83 /* FolderCrawler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A73A711D6D46F600A48A83 /* FolderCrawler.swift */; };
+		39D43FAF1D6F042D0015A3A2 /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39D43FAE1D6F042D0015A3A2 /* Helper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,6 +30,7 @@
 		39A73A681D6D466D00A48A83 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		39A73A6F1D6D467E00A48A83 /* File.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		39A73A711D6D46F600A48A83 /* FolderCrawler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FolderCrawler.swift; sourceTree = "<group>"; };
+		39D43FAE1D6F042D0015A3A2 /* Helper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +65,7 @@
 			children = (
 				39A73A681D6D466D00A48A83 /* main.swift */,
 				39A73A711D6D46F600A48A83 /* FolderCrawler.swift */,
+				39D43FAE1D6F042D0015A3A2 /* Helper.swift */,
 				39A73A6F1D6D467E00A48A83 /* File.swift */,
 			);
 			path = rdiff;
@@ -130,6 +133,7 @@
 				39A73A721D6D46F600A48A83 /* FolderCrawler.swift in Sources */,
 				39A73A691D6D466D00A48A83 /* main.swift in Sources */,
 				39A73A701D6D467E00A48A83 /* File.swift in Sources */,
+				39D43FAF1D6F042D0015A3A2 /* Helper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
